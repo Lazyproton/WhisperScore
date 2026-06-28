@@ -72,8 +72,15 @@ def compute_scores(analyzer_results: Dict[str, AnalyzerResult]) -> Dict[str, Any
         scores["pitch_variation"] = round(pitch_var, 1)
         voice_components.append(pitch_var * 0.05)
 
+    # New: vocal expressiveness from VocalExpressivenessAnalyzer
+    expressiveness = analyzer_results.get("expressiveness")
+    if expressiveness and expressiveness.success:
+        expr_score = expressiveness.metrics.get("expressiveness_score", 60)
+        scores["expressiveness"] = round(expr_score, 1)
+        voice_components.append(expr_score * 0.10)
+
     if voice_components:
-        total_weight = 0.4 + 0.3 + 0.15 + 0.1 + 0.05
+        total_weight = 0.4 + 0.3 + 0.15 + 0.1 + 0.05 + (0.10 if expressiveness and expressiveness.success else 0)
         voice_score = sum(voice_components) / total_weight if total_weight > 0 else 60
     else:
         voice_score = 60
@@ -81,27 +88,30 @@ def compute_scores(analyzer_results: Dict[str, AnalyzerResult]) -> Dict[str, Any
 
     # ─── Presence Score ───────────────────────────────────────────────────────
     presence_components = []
+    presence_weight_total = 0.0
 
-    face_mesh = analyzer_results.get("face_mesh")
-    if face_mesh and face_mesh.success:
-        eye_contact = face_mesh.metrics.get("eye_contact_percentage", 60)
-        eye_score = min(100, eye_contact)
+    face = analyzer_results.get("face")
+    if face and face.success:
+        eye_contact = face.metrics.get("eye_contact_percentage", 60)
+        eye_score   = min(100, eye_contact)
         scores["eye_contact"] = round(eye_score, 1)
-        presence_components.append(eye_score * 0.6)
+        presence_components.append(eye_score * 0.50)
+        presence_weight_total += 0.50
 
-    pose = analyzer_results.get("pose")
-    if pose and pose.success:
-        posture = pose.metrics.get("posture_score", 70)
-        scores["posture"] = round(posture, 1)
-        presence_components.append(posture * 0.4)
+    gesture = analyzer_results.get("gesture")
+    if gesture and gesture.success:
+        gesture_score = gesture.metrics.get("gesture_score", 65)
+        scores["gesture"] = round(gesture_score, 1)
+        # We replace the combined posture/gesture with a 0.50 weight on gesture score
+        presence_components.append(gesture_score * 0.50)
+        presence_weight_total += 0.50
 
-    if presence_components:
-        total_weight = sum([0.6 if face_mesh and face_mesh.success else 0,
-                            0.4 if pose and pose.success else 0])
-        presence_score = sum(presence_components) / total_weight if total_weight > 0 else 65
+    if presence_components and presence_weight_total > 0:
+        presence_score = sum(presence_components) / presence_weight_total
     else:
         presence_score = 65
     scores["presence"] = round(min(100, max(0, presence_score)), 1)
+
 
     # ─── Content Score ────────────────────────────────────────────────────────
     llm = analyzer_results.get("llm")
