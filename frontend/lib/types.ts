@@ -37,6 +37,9 @@ export interface ScoreBreakdown {
   pitch_variation?: number;
   eye_contact?: number;
   posture?: number;
+  expressiveness?: number;
+  vocal_confidence?: number;
+  argument_strength?: number;
 }
 
 export interface CoachingResult {
@@ -46,6 +49,11 @@ export interface CoachingResult {
   improved_excerpt?: string;
   summary?: string;
   transcript?: string;
+  anticipated_questions?: {
+    question: string;
+    answer: string;
+    rationale: string;
+  }[];
 }
 
 export interface AnalysisResults {

@@ -9,8 +9,8 @@ interface Props { scores: ScoreBreakdown; }
 
 export default function ScoreRadar({ scores }: Props) {
   const data = [
-    { subject: 'Content',  score: Math.round(scores.content),  fullMark: 100 },
-    { subject: 'Voice',    score: Math.round(scores.voice),    fullMark: 100 },
+    { subject: 'Argument', score: Math.round(scores.argument_strength ?? scores.content), fullMark: 100 },
+    { subject: 'Vocal Conf', score: Math.round(scores.vocal_confidence ?? scores.voice),    fullMark: 100 },
     { subject: 'Presence', score: Math.round(scores.presence), fullMark: 100 },
     { subject: 'Clarity',  score: Math.round(scores.clarity ?? 70),  fullMark: 100 },
     { subject: 'Pace',     score: Math.round(scores.speaking_rate ?? 70), fullMark: 100 },

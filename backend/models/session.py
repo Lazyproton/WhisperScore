@@ -156,6 +156,9 @@ class Score(Base):
     pitch_variation = Column(Float, nullable=True)
     eye_contact = Column(Float, nullable=True)
     posture = Column(Float, nullable=True)
+    expressiveness = Column(Float, nullable=True)
+    vocal_confidence = Column(Float, nullable=True)
+    argument_strength = Column(Float, nullable=True)
 
     session = relationship("Session", back_populates="score")
 
@@ -174,6 +177,7 @@ class CoachingResult(Base):
     weaknesses = Column(Text, nullable=True)         # JSON array
     tips = Column(Text, nullable=True)               # JSON array
     improved_excerpt = Column(Text, nullable=True)   # Rewritten paragraph
+    anticipated_questions = Column(Text, nullable=True) # JSON array of Q&As
     raw_transcript = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 

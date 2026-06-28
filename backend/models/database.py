@@ -28,6 +28,30 @@ def create_tables():
     """Create all tables. Called on startup."""
     Base.metadata.create_all(bind=engine)
 
+    # Automatically handle adding new columns to an existing SQLite DB
+    from sqlalchemy import text
+    with engine.begin() as conn:
+        # Check and add 'expressiveness' to scores
+        try:
+            conn.execute(text("ALTER TABLE scores ADD COLUMN expressiveness FLOAT"))
+        except Exception:
+            pass
+        # Check and add 'vocal_confidence' to scores
+        try:
+            conn.execute(text("ALTER TABLE scores ADD COLUMN vocal_confidence FLOAT"))
+        except Exception:
+            pass
+        # Check and add 'argument_strength' to scores
+        try:
+            conn.execute(text("ALTER TABLE scores ADD COLUMN argument_strength FLOAT"))
+        except Exception:
+            pass
+        # Check and add 'anticipated_questions' to coaching_results
+        try:
+            conn.execute(text("ALTER TABLE coaching_results ADD COLUMN anticipated_questions TEXT"))
+        except Exception:
+            pass
+
 
 def get_db():
     """FastAPI dependency: yields a database session."""

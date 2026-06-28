@@ -119,6 +119,9 @@ def _run_analysis(session_id: str, video_path: str, session_dir: str):
             pitch_variation=scores.get("pitch_variation"),
             eye_contact=scores.get("eye_contact"),
             posture=scores.get("posture"),
+            expressiveness=scores.get("expressiveness"),
+            vocal_confidence=scores.get("vocal_confidence"),
+            argument_strength=scores.get("argument_strength"),
         )
         db.add(score_row)
 
@@ -130,6 +133,7 @@ def _run_analysis(session_id: str, video_path: str, session_dir: str):
             weaknesses=json.dumps(coaching.get("weaknesses", [])),
             tips=json.dumps(coaching.get("tips", [])),
             improved_excerpt=coaching.get("improved_excerpt", ""),
+            anticipated_questions=json.dumps(coaching.get("anticipated_questions", [])),
             raw_transcript=result["metrics"]["content"].get("transcript", ""),
         )
         db.add(coaching_row)
@@ -239,6 +243,9 @@ def get_results(session_id: str, db: Session = Depends(get_db)):
             "pitch_variation": score.pitch_variation,
             "eye_contact": score.eye_contact,
             "posture": score.posture,
+            "expressiveness": score.expressiveness,
+            "vocal_confidence": score.vocal_confidence,
+            "argument_strength": score.argument_strength,
         }
 
     coaching_dict = None
@@ -248,6 +255,7 @@ def get_results(session_id: str, db: Session = Depends(get_db)):
             "weaknesses": json.loads(coaching.weaknesses or "[]"),
             "tips": json.loads(coaching.tips or "[]"),
             "improved_excerpt": coaching.improved_excerpt or "",
+            "anticipated_questions": json.loads(coaching.anticipated_questions or "[]"),
             "summary": "",
             "transcript": coaching.raw_transcript or "",
         }

@@ -20,6 +20,7 @@ const DEMO: AnalysisResults = {
     clarity: 74.0, organization: 68.0, persuasiveness: 72.0,
     speaking_rate: 75.0, filler_score: 65.0, pause_quality: 80.0,
     pitch_variation: 82.0, eye_contact: 76.0, posture: 68.0,
+    argument_strength: 78.0, vocal_confidence: 84.0,
   },
   events: [
     { timestamp: 4.0,   category: 'voice',    metric: 'pace',         score: 88, severity: 'positive', title: 'Strong Opening Pace',      description: 'You started at a confident 135 WPM — clear and engaging.' },
@@ -59,6 +60,18 @@ const DEMO: AnalysisResults = {
     improved_excerpt: 'Rather than "um, so basically what I mean is…", try: "The core issue is straightforward. When we examine the data, three patterns emerge consistently."',
     summary: 'A solid presentation with genuine strengths in vocal expressiveness and conclusion delivery. Focus on controlling speaking pace and maintaining consistent eye contact to raise your overall score.',
     transcript: 'Good morning everyone. Um, so today I want to talk about the future of artificial intelligence and how it\'s going to, uh, basically change the way we work. The key thing to understand is that AI isn\'t replacing jobs — it\'s fundamentally transforming them.',
+    anticipated_questions: [
+      {
+        question: "How does the 40% productivity increase figure handle differences in industry sectors?",
+        answer: "Acknowledge that productivity gains vary: 'While the 40% figure represents an aggregate average, sectors like software development and customer service saw gains up to 55%, whereas manufacturing experienced around 15% due to longer implementation cycles.'",
+        rationale: "You cited a broad statistic (40% increase) without specifying the industry variance, which is a common point of skepticism for audiences."
+      },
+      {
+        question: "What specific jobs are at risk of being replaced, despite your claim that AI isn't replacing jobs?",
+        answer: "Be direct but constructive: 'AI shifts tasks rather than entire jobs. For example, routine data entry tasks are automated, allowing analysts to focus on interpretation. We advise proactive upskilling in data strategy.'",
+        rationale: "Saying 'AI isn't replacing jobs' is a strong claim that can trigger defensive reactions unless backed by a nuanced task-vs-job explanation."
+      }
+    ]
   },
 };
 
@@ -165,9 +178,11 @@ export default function DemoPage() {
                   {[
                     { label: 'Clarity',        value: scores.clarity ?? 74,          color: '#a78bfa' },
                     { label: 'Organization',   value: scores.organization ?? 68,      color: '#a78bfa' },
+                    { label: 'Argument Strength', value: scores.argument_strength ?? 78, color: '#a78bfa' },
                     { label: 'Speaking Rate',  value: scores.speaking_rate ?? 75,     color: '#4f9ef8' },
                     { label: 'Filler Words',   value: scores.filler_score ?? 65,      color: '#4f9ef8' },
                     { label: 'Pause Quality',  value: scores.pause_quality ?? 80,     color: '#4f9ef8' },
+                    { label: 'Vocal Confidence', value: scores.vocal_confidence ?? 84, color: '#4f9ef8' },
                     { label: 'Eye Contact',    value: scores.eye_contact ?? 76,       color: '#2dd4bf' },
                     { label: 'Posture',        value: scores.posture ?? 68,           color: '#2dd4bf' },
                   ].map(m => (

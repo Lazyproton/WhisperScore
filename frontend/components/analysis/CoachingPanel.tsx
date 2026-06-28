@@ -1,6 +1,6 @@
 'use client';
 import type { CoachingResult } from '@/lib/types';
-import { ThumbsUp, AlertTriangle, Lightbulb, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { ThumbsUp, AlertTriangle, Lightbulb, FileText, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 
 interface Props { coaching: CoachingResult; transcript?: string; }
@@ -52,6 +52,65 @@ function Section({
         >
           {open ? <><ChevronUp size={14} /> Show less</> : <><ChevronDown size={14} /> Show {items.length - 3} more</>}
         </button>
+      )}
+    </div>
+  );
+}
+
+function QuestionAccordion({ q }: { q: { question: string; answer: string; rationale: string } }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      border: '1px solid var(--border)',
+      borderRadius: 10,
+      background: 'rgba(255,255,255,0.02)',
+      overflow: 'hidden',
+    }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 14px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+          color: 'var(--text-secondary)',
+          fontSize: 13,
+          fontWeight: 600,
+          gap: 12,
+        }}
+      >
+        <span style={{ flex: 1 }}>❓ {q.question}</span>
+        {open ? <ChevronUp size={14} style={{ flexShrink: 0 }} /> : <ChevronDown size={14} style={{ flexShrink: 0 }} />}
+      </button>
+      {open && (
+        <div style={{
+          padding: '12px 14px',
+          borderTop: '1px solid var(--border)',
+          background: 'rgba(0,0,0,0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          fontSize: 13,
+          lineHeight: 1.5,
+        }}>
+          <div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+              💡 Coached Response
+            </div>
+            <div style={{ color: 'var(--text-secondary)' }}>{q.answer}</div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+              🎯 Rationale
+            </div>
+            <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>{q.rationale}</div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -132,6 +191,29 @@ export default function CoachingPanel({ coaching, transcript }: Props) {
             lineHeight: 1.65, fontStyle: 'italic',
           }}>
             "{coaching.improved_excerpt}"
+          </div>
+        </div>
+      )}
+
+      {/* Anticipated Questions */}
+      {coaching.anticipated_questions && coaching.anticipated_questions.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
+          }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 8,
+              background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f87171',
+            }}>
+              <HelpCircle size={14} />
+            </div>
+            <span style={{ fontWeight: 600, fontSize: 14 }}>Tough Questions Coach</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {coaching.anticipated_questions.map((q, idx) => (
+              <QuestionAccordion key={idx} q={q} />
+            ))}
           </div>
         </div>
       )}

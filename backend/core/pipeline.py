@@ -128,14 +128,25 @@ class AnalysisPipeline:
         extract_audio(video_path, audio_path)
         duration = get_duration(video_path)
 
-        # ── Step 2: Audio analyzers (parallel) ────────────────────────────────
+        # ── Step 2a: Whisper first (others need its word timestamps) ─────────
         results = {}
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        results["whisper"] = self._whisper.safe_analyze(audio_path=audio_path)
+        logger.info(f"[whisper] ✓ {results['whisper'].summary}")
+
+        whisper_words = (
+            results["whisper"].metrics.get("words", [])
+            if results["whisper"] and results["whisper"].success
+            else []
+        )
+
+        # ── Step 2b: Remaining audio analyzers (parallel) ─────────────────────
+        with ThreadPoolExecutor(max_workers=4) as executor:
             futures = {
-                "whisper":        executor.submit(self._whisper.safe_analyze,       audio_path=audio_path),
-                "silero":         executor.submit(self._silero.safe_analyze,        audio_path=audio_path),
+                "silero":         executor.submit(self._silero.safe_analyze,
+                                      audio_path=audio_path, word_timestamps=whisper_words),
                 "librosa":        executor.submit(self._librosa.safe_analyze,       audio_path=audio_path),
-                "parselmouth":    executor.submit(self._parselmouth.safe_analyze,   audio_path=audio_path),
+                "parselmouth":    executor.submit(self._parselmouth.safe_analyze,
+                                      audio_path=audio_path, word_timestamps=whisper_words),
                 "expressiveness": executor.submit(self._expressiveness.safe_analyze, audio_path=audio_path),
             }
             for name, future in futures.items():
@@ -175,6 +186,11 @@ class AnalysisPipeline:
             whisper_result.metrics.get("transcript", "")
             if whisper_result and whisper_result.success
             else ""
+        )
+        word_timestamps = (
+            whisper_result.metrics.get("words", [])
+            if whisper_result and whisper_result.success
+            else []
         )
         results["llm"] = self._llm.safe_analyze(
             transcript=transcript,
@@ -239,14 +255,33 @@ class AnalysisPipeline:
                 "content": {
                     "word_count":               w_m.get("total_words"),
                     "transcript":               transcript,
+                    "clarity":                  llm_r.metrics.get("clarity")              if llm_r and llm_r.success else None,
+                    "organization":             llm_r.metrics.get("organization")         if llm_r and llm_r.success else None,
+                    "persuasiveness":           llm_r.metrics.get("persuasiveness")       if llm_r and llm_r.success else None,
+                    "argument_strength":        llm_r.metrics.get("argument_strength")    if llm_r and llm_r.success else None,
+                    "argument_analysis":        llm_r.metrics.get("argument_analysis", {}) if llm_r and llm_r.success else {},
+                },
+                "voice_confidence": {
+                    "vocal_confidence_score":   pm_m.get("vocal_confidence_score"),
+                    "upspeak_count":            pm_m.get("upspeak_count"),
+                    "jitter":                   pm_m.get("jitter"),
+                    "shimmer":                  pm_m.get("shimmer"),
+                    "hnr_db":                   pm_m.get("hnr_db"),
+                },
+                "pause_intelligence": {
+                    "strategic_pause_count":    s_m.get("strategic_pause_count"),
+                    "effective_pause_count":    s_m.get("effective_pause_count"),
+                    "awkward_pause_count":      s_m.get("awkward_pause_count"),
+                    "filler_adj_pause_count":   s_m.get("filler_adj_pause_count"),
                 },
             },
             "coaching": {
-                "strengths":        llm_r.metrics.get("strengths", [])        if llm_r and llm_r.success else [],
-                "weaknesses":       llm_r.metrics.get("weaknesses", [])       if llm_r and llm_r.success else [],
-                "tips":             llm_r.metrics.get("tips", [])             if llm_r and llm_r.success else [],
-                "improved_excerpt": llm_r.metrics.get("improved_excerpt", "") if llm_r and llm_r.success else "",
-                "summary":          llm_r.metrics.get("summary", "")         if llm_r and llm_r.success else "",
+                "strengths":              llm_r.metrics.get("strengths", [])              if llm_r and llm_r.success else [],
+                "weaknesses":             llm_r.metrics.get("weaknesses", [])             if llm_r and llm_r.success else [],
+                "tips":                   llm_r.metrics.get("tips", [])                   if llm_r and llm_r.success else [],
+                "improved_excerpt":       llm_r.metrics.get("improved_excerpt", "")       if llm_r and llm_r.success else "",
+                "summary":                llm_r.metrics.get("summary", "")               if llm_r and llm_r.success else "",
+                "anticipated_questions":  llm_r.metrics.get("anticipated_questions", [])  if llm_r and llm_r.success else [],
             },
         }
 

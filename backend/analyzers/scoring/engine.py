@@ -71,6 +71,13 @@ def compute_scores(analyzer_results: Dict[str, AnalyzerResult]) -> Dict[str, Any
         pitch_var = parselmouth.metrics.get("pitch_variation_score", 60)
         scores["pitch_variation"] = round(pitch_var, 1)
         voice_components.append(pitch_var * 0.05)
+        # Vocal confidence composite
+        vocal_conf = parselmouth.metrics.get("vocal_confidence_score", 60)
+        scores["vocal_confidence"] = round(vocal_conf, 1)
+        voice_components.append(vocal_conf * 0.10)
+        total_parselmouth_weight = 0.15  # 0.05 pitch + 0.10 confidence
+    else:
+        total_parselmouth_weight = 0.0
 
     # New: vocal expressiveness from VocalExpressivenessAnalyzer
     expressiveness = analyzer_results.get("expressiveness")
@@ -80,7 +87,12 @@ def compute_scores(analyzer_results: Dict[str, AnalyzerResult]) -> Dict[str, Any
         voice_components.append(expr_score * 0.10)
 
     if voice_components:
-        total_weight = 0.4 + 0.3 + 0.15 + 0.1 + 0.05 + (0.10 if expressiveness and expressiveness.success else 0)
+        total_weight = (
+            0.40 + 0.30 + 0.15  # whisper: wpm + filler, silero: pause
+            + 0.10               # librosa: loudness
+            + (0.15 if parselmouth and parselmouth.success else 0.0)  # pitch + confidence
+            + (0.10 if expressiveness and expressiveness.success else 0.0)
+        )
         voice_score = sum(voice_components) / total_weight if total_weight > 0 else 60
     else:
         voice_score = 60
@@ -122,16 +134,19 @@ def compute_scores(analyzer_results: Dict[str, AnalyzerResult]) -> Dict[str, Any
         evidence = llm.metrics.get("supporting_evidence", 65)
         logical_flow = llm.metrics.get("logical_flow", 70)
 
-        scores["clarity"] = round(clarity, 1)
-        scores["organization"] = round(organization, 1)
-        scores["persuasiveness"] = round(persuasiveness, 1)
+        arg_str   = llm.metrics.get("argument_strength", 65)
+        scores["clarity"]          = round(clarity, 1)
+        scores["organization"]     = round(organization, 1)
+        scores["persuasiveness"]   = round(persuasiveness, 1)
+        scores["argument_strength"] = round(arg_str, 1)
 
         content_score = (
-            clarity * 0.3 +
-            organization * 0.25 +
-            persuasiveness * 0.2 +
-            evidence * 0.15 +
-            logical_flow * 0.1
+            clarity        * 0.25 +
+            organization   * 0.20 +
+            persuasiveness * 0.20 +
+            evidence       * 0.15 +
+            logical_flow   * 0.10 +
+            arg_str        * 0.10
         )
     else:
         content_score = 65

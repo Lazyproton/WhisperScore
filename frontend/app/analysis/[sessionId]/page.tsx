@@ -207,10 +207,12 @@ export default function AnalysisPage({ params }: { params: Promise<{ sessionId: 
                   <MetricPill label="Filler Score"   value={scores.filler_score}    unit="/100" />
                   <MetricPill label="Pause Quality"  value={scores.pause_quality}   unit="/100" />
                   <MetricPill label="Pitch Variation" value={scores.pitch_variation} unit="/100" />
+                  <MetricPill label="Vocal Confidence" value={scores.vocal_confidence} unit="/100" />
                   <MetricPill label="Eye Contact"    value={scores.eye_contact}     unit="/100" />
                   <MetricPill label="Posture"        value={scores.posture}         unit="/100" />
                   <MetricPill label="Clarity"        value={scores.clarity}         unit="/100" />
                   <MetricPill label="Organization"   value={scores.organization}    unit="/100" />
+                  <MetricPill label="Argument Strength" value={scores.argument_strength} unit="/100" />
                 </div>
               </div>
             </div>
